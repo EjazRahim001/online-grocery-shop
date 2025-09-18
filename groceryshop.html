@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FreshMart - Online Grocery Shop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; }
+    header, nav { background-color: #4caf50; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    nav ul { display: flex; list-style: none; gap: 1rem; margin: 0; padding: 0; }
+    nav li { cursor: pointer; }
+    main { padding: 1rem; }
+    .hidden { display: none; }
+    #productGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+    .product-card { border: 1px solid #ddd; padding: 1rem; text-align: center; }
+    .product-card button { background-color: #4caf50; color: white; border: none; padding: 0.5rem; cursor: pointer; }
+    form input { display: block; margin: 0.5rem 0; padding: 0.5rem; width: 100%; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FreshMart 🛒</h1>
+    <input type="text" id="search" placeholder="Search groceries..." />
+    <button onclick="toggleSection('loginForm')">Login</button>
+    <button onclick="toggleSection('cartPanel')">Cart (<span id="cartCount">0</span>)</button>
+  </header>
+
+  <nav>
+    <ul>
+      <li onclick="filterCategory('Fruits')">Fruits</li>
+      <li onclick="filterCategory('Vegetables')">Vegetables</li>
+      <li onclick="filterCategory('Dairy')">Dairy</li>
+      <li onclick="filterCategory('Snacks')">Snacks</li>
+      <li onclick="filterCategory('Beverages')">Beverages</li>
+    </ul>
+  </nav>
+
+  <main>
+    <section id="productGrid"></section>
+
+    <section id="cartPanel" class="hidden">
+      <h2>Your Cart</h2>
+      <ul id="cartItems"></ul>
+      <p>Total: PKR <span id="cartTotal">0</span></p>
+      <button onclick="toggleSection('checkoutForm')">Checkout</button>
+    </section>
+
+    <section id="checkoutForm" class="hidden">
+      <h2>Checkout</h2>
+      <form onsubmit="event.preventDefault(); alert('Order placed!');">
+        <input type="text" placeholder="Full Name" required />
+        <input type="text" placeholder="Delivery Address" required />
+        <input type="email" placeholder="Email" required />
+        <button type="submit">Place Order</button>
+      </form>
+    </section>
+
+    <section id="loginForm" class="hidden">
+      <h2>Login</h2>
+      <form onsubmit="event.preventDefault(); toggleSection('adminPanel');">
+        <input type="email" placeholder="Email" required />
+        <input type="password" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
+    </section>
+
+    <section id="adminPanel" class="hidden">
+      <h2>Admin Dashboard</h2>
+      <button onclick="alert('Add Product')">Add Product</button>
+      <button onclick="alert('Manage Orders')">Manage Orders</button>
+      <button onclick="alert('View Users')">View Users</button>
+    </section>
+  </main>
+
+  <script>
+    const products = [
+      { id: 1, name: "Apple 🍎", price: 120, category: "Fruits" },
+      { id: 2, name: "Banana 🍌", price: 90, category: "Fruits" },
+      { id: 3, name: "Orange 🍊", price: 100, category: "Fruits" },
+      { id: 4, name: "Grapes 🍇", price: 150, category: "Fruits" },
+      { id: 5, name: "Mango 🥭", price: 200, category: "Fruits" },
+      { id: 6, name: "Pear 🍐", price: 130, category: "Fruits" },
+      { id: 7, name: "Pineapple 🍍", price: 180, category: "Fruits" },
+      { id: 8, name: "Strawberry 🍓", price: 160, category: "Fruits" },
+      { id: 9, name: "Watermelon 🍉", price: 220, category: "Fruits" },
+      { id: 10, name: "Kiwi 🥝", price: 140, category: "Fruits" },
+      { id: 11, name: "Carrot 🥕", price: 60, category: "Vegetables" },
+      { id: 12, name: "Potato 🥔", price: 50, category: "Vegetables" },
+      { id: 13, name: "Tomato 🍅", price: 70, category: "Vegetables" },
+      { id: 14, name: "Onion 🧅", price: 40, category: "Vegetables" },
+      { id: 15, name: "Spinach 🥬", price: 80, category: "Vegetables" },
+      { id: 16, name: "Cabbage 🥗", price: 90, category: "Vegetables" },
+      { id: 17, name: "Broccoli 🥦", price: 110, category: "Vegetables" },
+      { id: 18, name: "Peas 🟢", price: 100, category: "Vegetables" },
+      { id: 19, name: "Cauliflower", price: 95, category: "Vegetables" },
+      { id: 20, name: "Bell Pepper 🌶️", price: 85, category: "Vegetables" }
+    ];
+
+    let cart = [];
+
+    function renderProducts(list = products) {
+      const grid = document.getElementById("productGrid");
+      grid.innerHTML = "";
+      list.forEach(product => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.innerHTML = `
+          <h3>${product.name}</h3>
+          <p>PKR ${product.price}</p>
+          <button onclick="addToCart(${product.id})">Add to Cart</button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function addToCart(id) {
+      const product = products.find(p => p.id === id);
+      cart.push(product);
+      updateCart();
+    }
+
+    function updateCart() {
+      document.getElementById("cartCount").textContent = cart.length;
+      const list = document.getElementById("cartItems");
+      const total = document.getElementById("cartTotal");
+      if (!list || !total) return;
+      list.innerHTML = "";
+      let sum = 0;
+      cart.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.name} - PKR ${item.price}`;
+        list.appendChild(li);
+        sum += item.price;
+      });
+      total.textContent = sum;
+    }
+
+    function filterCategory(cat) {
+      const filtered = products.filter(p => p.category === cat);
+      renderProducts(filtered);
+    }
+
+    function toggleSection(id) {
+      ["cartPanel", "checkoutForm", "loginForm", "adminPanel"].forEach(sec => {
+        document.getElementById(sec).classList.add("hidden");
+      });
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    document.getElementById("search").addEventListener("input", (e) => {
+      const term = e.target.value.toLowerCase();
+      const filtered = products.filter(p => p.name.toLowerCase().includes(term));
+      renderProducts(filtered);
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderProducts();
+      updateCart();
+    });
+  </script>
+</body>
+</html>
